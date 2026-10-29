@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今天吃什么 · 随机转盘</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --site-primary: #39E6D0;
+  --site-secondary: #FFB454;
+  --site-background: #07111F;
+  --site-on-primary: #06131D;
+  --site-on-secondary: #201306;
+  --site-on-background: #E8F2FA;
+  --site-font-body: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --site-font-heading: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  --surface: light-dark(#F7FBFF, #0C1B2D);
+  --muted: light-dark(#526579, #91A8BC);
+  --line: light-dark(#D6E2EB, #1D344A);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+#app { min-height: 100vh; width: 100%; background-color: var(--site-background); background-image: radial-gradient(ellipse at 50% -20%, #1C5367 0%, transparent 52%), linear-gradient(135deg, #07111F 0%, #0A1728 55%, #07111F 100%); padding: calc(28px * var(--site-spacing-scale)) 18px 40px; position:relative; overflow:hidden; }
+#app::before { content:"";position:absolute;inset:0;pointer-events:none;opacity:calc(.18 * var(--site-decoration-opacity));background-image:linear-gradient(#3AE6D015 1px,transparent 1px),linear-gradient(90deg,#3AE6D015 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 72%); }
+#app.food-effect::after { content:"";position:absolute;inset:-12%;z-index:0;pointer-events:none;opacity:0;mix-blend-mode:screen;background:var(--page-effect-background,radial-gradient(circle at 50% 50%,#35CDBF66,transparent 45%));animation:foodPageFlash var(--page-effect-duration,2.2s) ease-out both; }
+#app.food-effect-0::after { background:radial-gradient(circle at 18% 22%,#35CDBF80,transparent 30%),radial-gradient(circle at 82% 78%,#35CDBF44,transparent 42%); }
+#app.food-effect-1::after { background:linear-gradient(118deg,transparent 12%,#F2B65F22 32%,#F2B65F70 48%,#F2B65F22 62%,transparent 82%); }
+#app.food-effect-2::after { background:radial-gradient(ellipse at 10% 65%,#5D94E866,transparent 40%),radial-gradient(ellipse at 90% 25%,#5D94E844,transparent 35%); }
+#app.food-effect-3::after { background:repeating-conic-gradient(from 10deg at 50% 40%,#419E8650 0 8deg,transparent 8deg 26deg); }
+#app.food-effect-4::after { background:radial-gradient(circle at 50% 0%,#9681D877,transparent 35%),linear-gradient(180deg,#9681D833,transparent 70%); }
+@keyframes foodPageFlash { 0% { opacity:0;transform:scale(var(--page-effect-start-scale,.88)) rotate(var(--page-effect-start-rotation,-3deg)); } 24% { opacity:var(--page-effect-opacity,.58); } 100% { opacity:0;transform:scale(var(--page-effect-end-scale,1.07)) rotate(var(--page-effect-end-rotation,3deg)); } }
+header, main, footer { position:relative;z-index:1; }
+header { max-width: 1000px; margin: 0 auto 24px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.04em; }
+.brand-icon { display:grid; place-items:center; width:42px;height:42px;border-radius:12px;background:linear-gradient(145deg,#39E6D0,#168CBA);color:#06131D;font-size:23px;box-shadow:0 0 28px #39E6D033; }
+.clock { text-align:right; font-variant-numeric:tabular-nums; }
+.clock strong { display:block;font-size:17px;letter-spacing:.12em;color:var(--site-primary); }
+.clock span { color:var(--muted);font-size:12px; }
+main { max-width:1000px;margin:auto; }
+.hero { text-align:center;margin: 18px 0 26px; }
+.eyebrow { display:inline-block; background:#102B3B;border:1px solid #23566A;color:var(--site-primary);padding:7px 13px;border-radius:5px;font-size:11px;font-weight:800;letter-spacing:.18em; }
+h1 { font-family:var(--site-font-heading);font-size:calc( clamp(30px, 5vw, 48px) * var(--site-heading-scale));line-height:1.15;margin:14px 0 10px;letter-spacing:-.04em; }
+.subtitle { color:var(--muted);margin:0;font-size:14px; }
+.layout { display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:22px;align-items:stretch; }
+.panel { background:linear-gradient(145deg, #102237F2, #0B1929F5);border:1px solid #244259;border-radius:calc(18px * var(--site-radius-scale));padding:calc(22px * var(--site-spacing-scale));box-shadow:0 22px 55px #0005,inset 0 1px 0 #DDF8FF0D;position:relative; }
+.panel::before { content:"";position:absolute;top:-1px;left:22px;width:74px;height:2px;background:var(--site-primary);box-shadow:0 0 14px #39E6D077; }
+.meal-top { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px; }
+.meal-label { color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.1em; }
+.meal-title { font-size:calc(27px * var(--site-heading-scale));font-weight:900;margin-top:4px; }
+.status { border-radius:5px;padding:7px 10px;background:#153447;border:1px solid #28566A;color:#83F5E6;font-size:12px;font-weight:800;white-space:nowrap; }
+.wheel-wrap { position:relative;width:min(100%,440px);margin:8px auto 20px;aspect-ratio:1;padding:10px;border-radius:50%;background:linear-gradient(135deg,#EAF8FF 0%,#42627B 12%,#142B40 27%,#6E91A5 42%,#0A1727 58%,#3B6479 75%,#D5F5F4 88%,#193348 100%);box-shadow:0 0 0 1px #6D9CB4,0 0 0 5px #081523,0 0 0 6px #2C5269,0 20px 45px #0009,0 0 32px #39E6D01A; }
+canvas { width:100%;height:100%;display:block;border-radius:50%;filter:drop-shadow(0 0 14px #39E6D02A); }
+.pointer { position:absolute;top:2.8%;left:50%;transform:translateX(-50%);z-index:3;width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:31px solid #FFBD67;border-bottom:0;filter:drop-shadow(0 2px 0 #7A461B) drop-shadow(0 0 10px #FFB45488); }
+.wheel-center { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:19%;aspect-ratio:1;box-sizing:border-box;padding:2px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#1E3B51,#07111F 72%);border:3px solid #A9EDE9;display:grid;place-items:center;text-align:center;line-height:1;white-space:nowrap;font-size:clamp(12px,2vw,18px);font-weight:900;color:#E8FFFC;box-shadow:0 0 0 3px #07111F,0 0 0 6px #39E6D055,0 0 22px #39E6D066,inset 0 2px 5px #FFFFFF25;pointer-events:none; }
+.actions { display:flex;gap:10px;justify-content:center;flex-wrap:wrap; }
+button { font:inherit;border:0;cursor:pointer;border-radius:14px;padding:13px 19px;font-weight:800;transition:transform .15s,opacity .15s; }
+button:active { transform:scale(.98); }
+button:disabled { opacity:.42;cursor:not-allowed; }
+.primary { background:linear-gradient(110deg,#39E6D0,#65C9F0);color:var(--site-on-primary);border-radius:7px;box-shadow:0 0 24px #39E6D022; }
+.secondary { background:#172D41;color:#D9EAF6;border:1px solid #31516A;border-radius:7px; }
+.demo { background:#263047;color:#F2D6A5;border:1px solid #866B48;border-radius:7px; }
+.password-dialog { width:min(92vw,380px);border:1px solid #31566B;border-radius:16px;padding:24px;background:#0D2032;color:#E8F2FA;box-shadow:0 24px 70px #000B; }
+.password-dialog::backdrop { background:#020814C9;backdrop-filter:blur(5px); }
+.password-dialog h2 { margin:0 0 8px;font-size:20px; }
+.password-dialog p { margin:0 0 18px;color:#91A8BC;font-size:13px;line-height:1.6; }
+.password-dialog label { display:block;margin:12px 0 6px;color:#B9CCD9;font-size:12px;font-weight:700; }
+.password-dialog input { width:100%;padding:12px 14px;border:1px solid #31516A;border-radius:8px;background:#071522;color:#E8F2FA;font:inherit;letter-spacing:.2em;outline:none; }
+.password-dialog input:focus { border-color:#39E6D0;box-shadow:0 0 0 3px #39E6D022; }
+.password-error { color:#FFB454;font-size:12px;min-height:18px;margin-top:8px; }
+.password-actions { display:flex;justify-content:flex-end;gap:10px;margin-top:16px; }
+.ghost { background:transparent;color:var(--site-on-background);border:1px solid var(--line); }
+.note { text-align:center;color:var(--muted);font-size:12px;line-height:1.7;margin:15px 0 0; }
+.result { margin-top:16px;padding:15px 16px;border-radius:10px;background:#0A1827;border:1px solid #24465C;text-align:center; }
+.result .small { color:var(--muted);font-size:12px; }
+.result .food { font-size:25px;font-weight:900;margin:4px 0;color:var(--site-primary);text-shadow:0 0 22px #39E6D033; }
+.side h2 { font-size:18px;margin:0 0 16px; }
+.rule-list { display:grid;gap:12px; }
+.rule { display:flex;gap:12px;align-items:flex-start; }
+.rule-icon { flex:0 0 34px;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:#132C3D;border:1px solid #24475D; }
+.rule strong { display:block;font-size:13px;margin-bottom:3px; }
+.rule p { margin:0;color:var(--muted);font-size:12px;line-height:1.65; }
+.divider {height:1px;background:var(--line);margin:20px 0;}
+.counter-row {display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:13px;}
+.counter {display:flex;gap:5px;}
+.dot {width:9px;height:9px;border-radius:2px;background:var(--site-primary);box-shadow:0 0 8px #39E6D055;}
+.dot.off {background:var(--line);}
+.progress {height:5px;background:#1B3043;border-radius:2px;overflow:hidden;margin-top:8px;}
+.progress > div {height:100%;background:linear-gradient(90deg,#168FA8,var(--site-primary));width:0%;transition:width .25s;box-shadow:0 0 10px #39E6D066;}
+.food-list {display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.food-chip {border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px;color:var(--muted);}
+.reset-note {font-size:12px;color:var(--muted);line-height:1.7;margin-top:16px;}
+footer {max-width:1000px;margin:22px auto 0;text-align:center;color:var(--muted);font-size:11px;}
+@media(max-width:760px){#app{padding:18px 12px 30px}.layout{grid-template-columns:1fr}.panel{padding:18px}.side{order:2}.clock strong{font-size:13px}.brand{font-size:13px}.brand-icon{width:36px;height:36px}.wheel-wrap{width:min(100%,390px)}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="brand"><div class="brand-icon">🥢</div><div>今天吃什么<small style="display:block;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:0">随机决定，快乐开饭</small></div></div>
+  <div class="clock"><strong id="clock">--:--:--</strong><span>中国标准时间 · UTC+8</span></div>
+</header>
+<main>
+  <section class="hero">
+    <span class="eyebrow">MEAL DECISION WHEEL</span>
+    <h1 id="heroTitle">晚饭吃什么？</h1>
+    <p class="subtitle" id="heroSubtitle">让转盘替你做决定，今天好好吃饭。</p>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <div class="meal-top">
+        <div><div class="meal-label">当前用餐时段</div><div class="meal-title" id="mealTitle">晚饭时间</div></div>
+        <span class="status" id="periodStatus">晚餐 · 偏向米饭</span>
+      </div>
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="700" height="700" aria-label="随机食物转盘"></canvas>
+        <div class="wheel-center">开吃！</div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="spinBtn">🎯 开始旋转</button>
+        <button class="secondary" id="rerollBtn">↻ 使用今日重选</button>
+        <button class="demo" id="demoBtn">模拟演示</button>
+      </div>
+      <div class="result" aria-live="polite">
+        <div class="small" id="resultLabel">转盘结果会显示在这里</div>
+        <div class="food" id="resultFood">今天吃点什么？</div>
+        <div class="small" id="resultHint">每个用餐时段最多旋转 2 次</div>
+      </div>
+      <p class="note" id="spinNote">五种菜品均分转盘，每种占 20%，抽中机会相同。</p>
+      <p class="note">模拟演示需先验证密码；验证成功后再次点击按钮开始，每次解锁可演示 6 次，不消耗正式次数或重选机会。</p>
+      <p class="note" id="demoAccessNote" aria-live="polite" hidden></p>
+    </section>
+    <aside class="panel side">
+      <h2>📋 今日规则</h2>
+      <div class="rule-list">
+        <div class="rule"><div class="rule-icon">🕛</div><div><strong>按中国时间自动切换</strong><p>11:00–15:00 为午饭，17:00–22:00 为晚饭。其他时间可查看，但不能旋转。</p></div></div>
+        <div class="rule"><div class="rule-icon">🎡</div><div><strong>每个时段最多旋转 2 次</strong><p>午饭和晚饭分别计数，进入对应时段后开始计算。</p></div></div>
+        <div class="rule"><div class="rule-icon">🔄</div><div><strong>每天只有 1 次重选机会</strong><p>重选会消耗一次今日机会，并重新抽取当前时段的结果；不能反复重置。</p></div></div>
+        <div class="rule"><div class="rule-icon">🍜</div><div><strong>五种菜品均等概率</strong><p>每种菜品均占转盘的 20%，午饭和晚饭的抽中机会完全相同。</p></div></div>
+      </div>
+      <div class="divider"></div>
+      <h2>📊 今日使用情况</h2>
+      <div class="counter-row"><span>午饭旋转次数</span><span class="counter" id="lunchDots"></span></div>
+      <div class="progress"><div id="lunchProgress"></div></div>
+      <div class="counter-row"><span>晚饭旋转次数</span><span class="counter" id="dinnerDots"></span></div>
+      <div class="progress"><div id="dinnerProgress"></div></div>
+      <div class="counter-row"><span>今日重选机会</span><strong id="rerollStatus">可使用 1 次</strong></div>
+      <div class="food-list">
+        <span class="food-chip">食粒派</span><span class="food-chip">石锅拌饭</span><span class="food-chip">朱家小面</span><span class="food-chip">重庆大碗面</span><span class="food-chip">兰州拉面</span>
+      </div>
+      <p class="reset-note">使用说明：规则按本设备的中国标准时间和本地保存记录运行。每日记录在中国时间 00:00 自动换日；清除浏览器数据或更换设备可能会重置记录，请不要把它当作防作弊的强制限制。</p>
+    </aside>
+  </div>
+</main>
+<dialog id="demoPasswordDialog" class="password-dialog" aria-labelledby="demoPasswordTitle">
+  <h2 id="demoPasswordTitle">🔐 模拟演示验证</h2>
+  <p>请输入模拟演示密码。验证后可连续演示 6 次。</p>
+  <div id="demoPasswordForm">
+    <input id="demoPasswordInput" type="password" maxlength="64" autocomplete="off" placeholder="请输入密码" aria-label="模拟演示密码">
+    <div class="password-error" id="demoPasswordError" aria-live="polite"></div>
+    <div class="password-actions">
+      <button type="button" class="ghost" id="demoForgotPassword">忘记密码</button>
+      <button type="button" class="secondary" id="demoPasswordCancel">取消</button>
+      <button type="button" class="primary" id="demoPasswordConfirm">确认</button>
+    </div>
+  </div>
+</dialog>
+<dialog id="recoveryDialog" class="password-dialog" aria-labelledby="recoveryTitle">
+  <h2 id="recoveryTitle">🔎 找回模拟演示密码</h2>
+  <p>请回答安全问题，通过后即可设置新密码。</p>
+  <label for="recoveryAnswer">创作网页的作者是谁？</label>
+  <input id="recoveryAnswer" type="text" maxlength="40" autocomplete="off" placeholder="请输入问题答案">
+  <div class="password-error" id="recoveryError" aria-live="polite"></div>
+  <div class="password-actions">
+    <button type="button" class="secondary" id="recoveryCancel">取消</button>
+    <button type="button" class="primary" id="recoveryConfirm">验证答案</button>
+  </div>
+</dialog>
+<dialog id="newDemoPasswordDialog" class="password-dialog" aria-labelledby="newDemoPasswordTitle">
+  <h2 id="newDemoPasswordTitle">🔑 设置新密码</h2>
+  <p>安全答案正确。请设置并确认你的新密码。</p>
+  <label for="newDemoPassword">新密码</label>
+  <input id="newDemoPassword" type="password" maxlength="64" autocomplete="new-password" placeholder="输入自定义密码">
+  <label for="confirmNewDemoPassword">确认新密码</label>
+  <input id="confirmNewDemoPassword" type="password" maxlength="64" autocomplete="new-password" placeholder="再次输入新密码">
+  <div class="password-error" id="newDemoPasswordError" aria-live="polite"></div>
+  <div class="password-actions">
+    <button type="button" class="secondary" id="newDemoPasswordCancel">取消</button>
+    <button type="button" class="primary" id="saveNewDemoPassword">保存密码</button>
+  </div>
+</dialog>
+<footer>吃什么不用纠结，转一下就有答案。祝你每一餐都吃得开心 ❤️</footer>
+</div>
+<script>
+(() => {
+  const foods = ["食粒派", "石锅拌饭", "朱家小面", "重庆大碗面", "兰州拉面"];
+  const colors = ["#35CDBF", "#F2B65F", "#5D94E8", "#419E86", "#9681D8"];
+  const foodIcons = ["✦", "▦", "〰", "≋", "◎"];
+  const storyOpeners = ["哎，先听我慢慢讲，","这事儿说来有意思，","各位先别着急，","今天这个故事啊，","你听我给你说道说道，","话说到这儿啊，","不瞒你说，","来，咱们慢慢品，","先别划走，重点来了，","有一说一，","这回可算轮到它了，","说到吃饭这件事，"];
+  const foodNarratives = [
+    ["食粒派今天正式登场，","这一顿就安排食粒派，","食粒派这次排面拉满，","说到食粒派，那可真有故事，","食粒派闪亮登场，","今天的主角就是食粒派，","食粒派已经准备就绪，","想来想去还是食粒派最合适，"],
+    ["热乎乎的石锅拌饭来了，","石锅拌饭今天稳稳拿下，","这份石锅拌饭看着就香，","石锅拌饭的魅力这就来了，","今天就让石锅拌饭当主角，","石锅拌饭安排得明明白白，","说起石锅拌饭，香气仿佛已经到了，","这一碗石锅拌饭很有戏，"],
+    ["朱家小面今天登场，","这回就让朱家小面出场，","朱家小面已经准备好了，","说起朱家小面，故事可就来了，","今天这一口就选朱家小面，","朱家小面这次成功入选，","热气腾腾的朱家小面安排上，","朱家小面带着香气走来了，"],
+    ["重庆大碗面这就上场，","今天的重点是重庆大碗面，","重庆大碗面一出手就有气势，","说到重庆大碗面，那可不简单，","这一顿让重庆大碗面来撑场，","重庆大碗面已经就位，","重庆大碗面带着满满的诚意来了，","这次就让重庆大碗面当主角，"],
+    ["兰州拉面今天来报到，","这回轮到兰州拉面登场，","兰州拉面看起来就很靠谱，","说起兰州拉面，熟悉的感觉来了，","今天就由兰州拉面负责满足感，","兰州拉面已经安排妥当，","热乎的兰州拉面正在等待，","兰州拉面这次稳稳入选，"]
+  ];
+  const storyClosers = ["这味道值得期待。","今天这一口，稳了。","你说这谁能忍得住。","好了，开饭才是正经事。","故事讲完了，咱们吃起来。","这一餐就安排得明明白白。","不管了，开吃！","听我一句，趁热享用。","这回总算有答案了。","吃饱了，心情自然好。","这一顿，得好好享受。","那就这么定了，出发！"];
+  const speechVariantsByFood = foodNarratives.map((narratives, foodIndex) => {
+    const variants = [];
+    storyOpeners.forEach((opener, openerIndex) => narratives.forEach((narrative, narrativeIndex) => storyClosers.forEach((closer, closerIndex) => {
+      variants.push({id:`${foodIndex}-${openerIndex}-${narrativeIndex}-${closerIndex}`,text:`${opener}${narrative}${closer}`});
+    })));
+    return variants;
+  });
+  const playedSpeechIds = new Set();
+  const playedEffects = new Set();
+  const effectColors = ["#35CDBF","#F2B65F","#5D94E8","#419E86","#9681D8","#FF6B8A","#71D7FF","#F4E285","#A78BFA","#FA8C5C","#57E389","#E879F9"];
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const $ = id => document.getElementById(id);
+  const DAY_MS = 86400000;
+  let angle = 0, spinning = false, spinStarted = false, demoPeriod = null;
+  let demoUsesRemaining = 0;
+  let demoFreeUsesRemaining = 3;
+  let demoPassword = "666666", effectTimer = null;
+  try {
+    demoPassword = localStorage.getItem("mealWheelDemoPassword") || "666666";
+    const freeUsesSaved = localStorage.getItem("mealWheelDemoFreeUsesRemaining");
+    if (freeUsesSaved === null) {
+      demoFreeUsesRemaining = 3;
+      localStorage.setItem("mealWheelDemoFreeUsesRemaining", "3");
+    } else {
+      const parsedFreeUses = Number.parseInt(freeUsesSaved, 10);
+      demoFreeUsesRemaining = Number.isFinite(parsedFreeUses) ? Math.max(0, Math.min(3, parsedFreeUses)) : 0;
+    }
+  } catch (_) { demoFreeUsesRemaining = 3; }
+  let result = null;
+  const state = { date: "", lunch: 0, dinner: 0, rerollUsed: false, chosen: { lunch: null, dinner: null } };
+
+  function chinaDateParts() {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+    }).formatToParts(new Date());
+    return Object.fromEntries(parts.map(p => [p.type, p.value]));
+  }
+  function dateKey() { const p = chinaDateParts(); return `${p.year}-${p.month}-${p.day}`; }
+  function loadState() {
+    const key = dateKey();
+    try {
+      const saved = JSON.parse(localStorage.getItem("mealWheelState") || "null");
+      if (saved && saved.date === key) Object.assign(state, saved);
+      else { Object.assign(state, {date:key,lunch:0,dinner:0,rerollUsed:false,chosen:{lunch:null,dinner:null}}); saveState(); }
+    } catch (_) { state.date=key; saveState(); }
+  }
+  function saveState() {
+    try { localStorage.setItem("mealWheelState", JSON.stringify(state)); } catch (_) {}
+  }
+  function getPeriod() {
+    const p = chinaDateParts(), minutes = Number(p.hour)*60+Number(p.minute);
+    if (minutes >= 660 && minutes < 900) return "lunch";
+    if (minutes >= 1020 && minutes < 1320) return "dinner";
+    return minutes < 660 ? "beforeLunch" : minutes < 1020 ? "between" : "afterDinner";
+  }
+  function setDemoAccessMessage(message) {
+    $("demoAccessNote").textContent = message;
+    $("demoAccessNote").hidden = !message;
+  }
+  function showFoodEffect() {
+    const app = $("app"), classes = ["food-effect", "food-effect-0", "food-effect-1", "food-effect-2", "food-effect-3", "food-effect-4"];
+    const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+    let background = "", attempts = 0;
+    while ((!background || playedEffects.has(background)) && attempts++ < 30) {
+      const c1=effectColors[rand(0,effectColors.length-1)], c2=effectColors[rand(0,effectColors.length-1)], c3=effectColors[rand(0,effectColors.length-1)];
+      const x1=rand(8,92), y1=rand(8,92), x2=rand(8,92), y2=rand(8,92), spread1=rand(22,58), spread2=rand(20,52), tilt=rand(0,359);
+      const mode=rand(0,4);
+      if(mode===0) background=`radial-gradient(circle at ${x1}% ${y1}%,${c1}B8,transparent ${spread1}%),radial-gradient(circle at ${x2}% ${y2}%,${c2}88,transparent ${spread2}%),linear-gradient(${tilt}deg,transparent 10%,${c3}28 48%,transparent 88%)`;
+      else if(mode===1) background=`repeating-conic-gradient(from ${tilt}deg at ${x1}% ${y1}%,${c1}00 0deg,${c1}77 7deg,transparent 13deg 31deg),radial-gradient(circle at ${x2}% ${y2}%,${c2}88,transparent ${spread2}%)`;
+      else if(mode===2) background=`linear-gradient(${tilt}deg,transparent 12%,${c1}70 ${x1}%,${c2}70 ${x2}%,transparent 88%),radial-gradient(circle at ${x1}% ${y2}%,${c3}88,transparent ${spread2}%)`;
+      else if(mode===3) background=`radial-gradient(ellipse at ${x1}% ${y2}%,${c1}B8,transparent ${spread1}%),conic-gradient(from ${tilt}deg at ${x2}% ${y1}%,transparent 0deg,${c2}66 70deg,transparent 145deg,${c3}77 240deg,transparent 300deg)`;
+      else background=`radial-gradient(ellipse at ${x1}% ${y1}%,${c1}99,transparent ${spread1}%),linear-gradient(${tilt}deg,${c2}28 0%,transparent 38%,${c3}66 68%,transparent 100%)`;
+    }
+    playedEffects.add(background);
+    if (playedEffects.size > 5000) playedEffects.clear();
+    app.classList.remove(...classes);
+    app.style.setProperty("--page-effect-background",background);
+    app.style.setProperty("--page-effect-duration",`${(1.7+Math.random()*1.5).toFixed(2)}s`);
+    app.style.setProperty("--page-effect-opacity",(0.34+Math.random()*0.34).toFixed(2));
+    app.style.setProperty("--page-effect-start-scale",(0.82+Math.random()*0.18).toFixed(2));
+    app.style.setProperty("--page-effect-end-scale",(1.04+Math.random()*0.22).toFixed(2));
+    const rotation=rand(4,17)*(Math.random()<0.5?-1:1);
+    app.style.setProperty("--page-effect-start-rotation",`${rotation}deg`);
+    app.style.setProperty("--page-effect-end-rotation",`${-rotation}deg`);
+    void app.offsetWidth;
+    app.classList.add("food-effect");
+    if (effectTimer) clearTimeout(effectTimer);
+    effectTimer = setTimeout(() => app.classList.remove(...classes), 3400);
+  }
+  function speakFood(food, index) {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+    const variants = speechVariantsByFood[index] || speechVariantsByFood[0];
+    let available = variants.filter(variant => !playedSpeechIds.has(variant.id));
+    if (!available.length) {
+      variants.forEach(variant => playedSpeechIds.delete(variant.id));
+      available = variants;
+    }
+    const chosen = available[Math.floor(Math.random()*available.length)];
+    playedSpeechIds.add(chosen.id);
+    const voice = window.speechSynthesis;
+    voice.cancel();
+    const utterance = new SpeechSynthesisUtterance(chosen.text);
+    utterance.lang = "zh-CN";
+    utterance.rate = 0.84 + Math.random()*0.13;
+    utterance.pitch = 0.82 + Math.random()*0.20;
+    utterance.volume = 0.96;
+    const voices = voice.getVoices();
+    const mamboVoice = voices.find(item => /曼波|mambo/i.test(`${item.name} ${item.voiceURI||""}`));
+    const chineseVoice = voices.find(item => /^zh[-_]/i.test(item.lang) || /Chinese|中文/i.test(item.name));
+    if (mamboVoice || chineseVoice) utterance.voice = mamboVoice || chineseVoice;
+    voice.speak(utterance);
+  }
+  function drawWheel() {
+    const size = canvas.width, center = size/2, radius = size*0.465;
+    ctx.clearRect(0,0,size,size);
+    const period = demoPeriod || getPeriod();
+    const weights = [1,1,1,1,1];
+    const total = weights.reduce((a,b)=>a+b,0);
+    let start = -Math.PI/2 + angle;
+    ctx.save();
+    ctx.beginPath();ctx.arc(center,center,radius+3,0,Math.PI*2);ctx.fillStyle="#07111F";ctx.fill();
+    ctx.restore();
+    foods.forEach((food,i) => {
+      const sweep = weights[i]/total*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(center,center); ctx.arc(center,center,radius,start,start+sweep); ctx.closePath();
+      const grad=ctx.createRadialGradient(center-radius*.1,center-radius*.12,8,center,center,radius);
+      grad.addColorStop(0,colors[i]);grad.addColorStop(.74,colors[i]);grad.addColorStop(1,"#0A1B2B");
+      ctx.fillStyle=grad;ctx.fill();
+      ctx.strokeStyle="#8DDDDC";ctx.lineWidth=2.5;ctx.stroke();
+      ctx.save();ctx.translate(center,center);ctx.rotate(start+sweep/2);
+      const textX=radius*.85;
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.beginPath();ctx.arc(textX,0,21,0,Math.PI*2);ctx.fillStyle="#071522D9";ctx.fill();
+      ctx.strokeStyle="#B8F7F0";ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle="#6FF5E5";ctx.font="bold 17px 'Microsoft YaHei', sans-serif";ctx.fillText(foodIcons[i],textX,-5);
+      ctx.fillStyle="#F0FAFF";ctx.shadowColor="#39E6D088";ctx.shadowBlur=5;
+      ctx.font="900 30px 'Microsoft YaHei', sans-serif";
+      ctx.fillText(food,radius*.49,0, radius*.48);
+      ctx.restore(); start+=sweep;
+    });
+    ctx.beginPath();ctx.arc(center,center,radius,0,Math.PI*2);ctx.strokeStyle="#D9F8FF";ctx.lineWidth=7;ctx.stroke();
+    ctx.beginPath();ctx.arc(center,center,radius-10,0,Math.PI*2);ctx.strokeStyle="#07111F";ctx.lineWidth=2;ctx.stroke();
+  }
+  function pickFood(period) {
+    return foods[Math.floor(Math.random()*foods.length)];
+  }
+  function render() {
+    const period=getPeriod(), active=period==="lunch"||period==="dinner";
+    const lunch=period==="lunch", dinner=period==="dinner";
+    $("clock").textContent = new Intl.DateTimeFormat("zh-CN", {timeZone:"Asia/Shanghai",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date());
+    $("mealTitle").textContent = lunch ? "午饭时间" : dinner ? "晚饭时间" : period==="beforeLunch" ? "午饭还没开始" : period==="between" ? "午晚饭休息时间" : "今天晚饭时段已结束";
+    $("heroTitle").textContent = lunch ? "中饭吃什么？" : dinner ? "晚饭吃什么？" : period==="beforeLunch" ? "午饭时间还没到" : period==="between" ? "先休息一下，晚饭见" : "今天的转盘时间结束啦";
+    $("heroSubtitle").textContent = lunch ? "中午吃什么？五种美食等概率随机选。" : dinner ? "晚上吃什么？五种美食等概率随机选。" : "转盘只在规定的午饭和晚饭时间开放。";
+    $("periodStatus").textContent = lunch ? "午餐 · 均等概率" : dinner ? "晚餐 · 均等概率" : "当前不可旋转";
+    const count = lunch ? state.lunch : dinner ? state.dinner : 0;
+    const canSpin=active && count<2 && !spinning;
+    $("spinBtn").disabled=!canSpin;
+    $("spinBtn").textContent=spinning?"旋转中…":count>=2?"本时段次数已用完":"🎯 开始旋转";
+    $("rerollBtn").disabled=!active || state.rerollUsed || spinning || !(state.chosen[period]);
+    $("rerollBtn").textContent=state.rerollUsed?"今日重选已用完":"↻ 使用今日重选";
+    $("demoBtn").disabled=spinning;
+    $("demoBtn").textContent="模拟演示";
+    $("spinNote").textContent=active?"五种菜品均分转盘，每种占 20%，抽中机会相同。":"开放时段为中国时间 11:00–15:00、17:00–22:00；模拟演示需密码验证。";
+    $("lunchDots").innerHTML=[0,1].map(i=>`<i class="dot ${i>=state.lunch?"off":""}"></i>`).join("");
+    $("dinnerDots").innerHTML=[0,1].map(i=>`<i class="dot ${i>=state.dinner?"off":""}"></i>`).join("");
+    $("lunchProgress").style.width=(state.lunch/2*100)+"%";
+    $("dinnerProgress").style.width=(state.dinner/2*100)+"%";
+    $("rerollStatus").textContent=state.rerollUsed?"已用完":"可使用 1 次";
+    if (!result) {
+      const prior=state.chosen[period];
+      $("resultLabel").textContent=prior?"当前时段最近结果":"转盘结果会显示在这里";
+      $("resultFood").textContent=prior||"今天吃点什么？";
+      $("resultHint").textContent=active?`本时段已旋转 ${count}/2 次`:"请在规定时段再来旋转";
+    }
+    drawWheel();
+  }
+  function animateTo(food, period, isReroll=false, isDemo=false) {
+    if(spinning)return;
+    const weights=[1,1,1,1,1];
+    const total=weights.reduce((a,b)=>a+b,0);
+    const idx=foods.indexOf(food);
+    let before=0; for(let i=0;i<idx;i++)before+=weights[i]/total*Math.PI*2;
+    const sweep=weights[idx]/total*Math.PI*2;
+    // 指针位于正上方，旋转后该扇区中心对准指针
+    const targetMod=(-(before+sweep/2))%(Math.PI*2);
+    const currentMod=((angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+    const delta=((targetMod-currentMod)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    const start=angle, end=angle+Math.PI*2*(5+Math.floor(Math.random()*3))+delta;
+    const duration=3600, startTime=performance.now();
+    spinning=true;render();
+    function frame(now){
+      const t=Math.min(1,(now-startTime)/duration), eased=1-Math.pow(1-t,4);
+      angle=start+(end-start)*eased;drawWheel();
+      if(t<1){requestAnimationFrame(frame);return;}
+      angle=end%(Math.PI*2);spinning=false;result=food;
+      if(!isDemo){state.chosen[period]=food;saveState();}
+      $("resultLabel").textContent=isDemo?"模拟演示结果（不计次数）":isReroll?"今日重选结果":"本次抽中";
+      $("resultFood").textContent=food;
+      $("resultHint").textContent=isDemo?(demoUsesRemaining>0?`本次演示结束，密码解锁次数剩余 ${demoUsesRemaining} 次`:demoFreeUsesRemaining>0?`本次演示结束，免费演示还剩 ${demoFreeUsesRemaining} 次`:"免费次数已用完，请重新输入密码解锁"):isReroll?"重选机会已消耗，祝你吃得开心！":`本时段已旋转 ${period==="lunch"?state.lunch:state.dinner}/2 次`;
+      showFoodEffect(idx);
+      speakFood(food,idx);
+      render();
+    }
+    requestAnimationFrame(frame);
+  }
+  $("spinBtn").addEventListener("click",()=>{
+    const period=getPeriod(); if(!["lunch","dinner"].includes(period)||spinning)return;
+    if((period==="lunch"?state.lunch:state.dinner)>=2)return;
+    demoPeriod=null;
+    const food=pickFood(period);
+    if(period==="lunch")state.lunch++;else state.dinner++;
+    result=null;saveState();animateTo(food,period);render();
+  });
+  $("rerollBtn").addEventListener("click",()=>{
+    const period=getPeriod();if(!["lunch","dinner"].includes(period)||state.rerollUsed||!state.chosen[period]||spinning)return;
+    state.rerollUsed=true;
+    demoPeriod=null;
+    const food=pickFood(period);
+    result=null;saveState();animateTo(food,period,true);render();
+  });
+  function runDemo() {
+    if(spinning || (demoUsesRemaining<=0 && demoFreeUsesRemaining<=0))return;
+    setDemoAccessMessage("");
+    if (demoUsesRemaining > 0) {
+      demoUsesRemaining--;
+    } else {
+      demoFreeUsesRemaining = Math.max(0, demoFreeUsesRemaining - 1);
+      try { localStorage.setItem("mealWheelDemoFreeUsesRemaining", String(demoFreeUsesRemaining)); } catch (_) {}
+    }
+    const period=getPeriod();
+    demoPeriod=period==="lunch"||period==="dinner"?period:"dinner";
+    const food=pickFood(demoPeriod);
+    result=null;
+    animateTo(food,demoPeriod,false,true);
+  }
+  $("demoBtn").addEventListener("click",()=>{
+    if(spinning)return;
+    if(demoUsesRemaining>0 || demoFreeUsesRemaining>0){runDemo();return;}
+    setDemoAccessMessage("");
+    $("demoPasswordInput").value="";
+    $("demoPasswordError").textContent="";
+    $("demoPasswordDialog").showModal();
+    $("demoPasswordInput").focus();
+  });
+  function closeDialog(dialogId) {
+    const dialog = $(dialogId);
+    if(typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  }
+  function closeDemoPasswordDialog() { closeDialog("demoPasswordDialog"); }
+  function verifyDemoPassword() {
+    if($("demoPasswordInput").value.trim()!==demoPassword){
+      $("demoPasswordError").textContent="密码错误，请重新输入。";
+      $("demoPasswordInput").select();
+      return;
+    }
+    closeDemoPasswordDialog();
+    demoUsesRemaining=6;
+    setDemoAccessMessage("密码验证成功，已解锁 6 次。请再次点击“模拟演示”开始。");
+  }
+  $("demoPasswordCancel").addEventListener("click",closeDemoPasswordDialog);
+  $("demoPasswordConfirm").addEventListener("click",verifyDemoPassword);
+  $("demoForgotPassword").addEventListener("click",()=>{
+    closeDemoPasswordDialog();
+    $("recoveryAnswer").value="";
+    $("recoveryError").textContent="";
+    $("recoveryDialog").showModal();
+    $("recoveryAnswer").focus();
+  });
+  function verifyRecoveryAnswer() {
+    if($("recoveryAnswer").value.trim()!=="叶子"){
+      $("recoveryError").textContent="答案不正确，请重新输入。";
+      $("recoveryAnswer").select();
+      return;
+    }
+    closeDialog("recoveryDialog");
+    $("newDemoPassword").value="";
+    $("confirmNewDemoPassword").value="";
+    $("newDemoPasswordError").textContent="";
+    $("newDemoPasswordDialog").showModal();
+    $("newDemoPassword").focus();
+  }
+  function saveNewDemoPassword() {
+    const nextPassword = $("newDemoPassword").value.trim();
+    const confirmation = $("confirmNewDemoPassword").value.trim();
+    if(!nextPassword){
+      $("newDemoPasswordError").textContent="请输入新密码。";
+      $("newDemoPassword").focus();
+      return;
+    }
+    if(nextPassword!==confirmation){
+      $("newDemoPasswordError").textContent="两次输入的密码不一致，请重新确认。";
+      $("confirmNewDemoPassword").select();
+      return;
+    }
+    demoPassword = nextPassword;
+    let saved = true;
+    try { localStorage.setItem("mealWheelDemoPassword", demoPassword); } catch (_) { saved = false; }
+    demoUsesRemaining = 0;
+    closeDialog("newDemoPasswordDialog");
+    setDemoAccessMessage(saved ? "新密码已保存。请点击“模拟演示”，输入新密码解锁 6 次。" : "新密码已在当前页面设置，但浏览器未允许保存；刷新后可能恢复默认密码。");
+  }
+  $("recoveryCancel").addEventListener("click",()=>closeDialog("recoveryDialog"));
+  $("recoveryConfirm").addEventListener("click",verifyRecoveryAnswer);
+  $("newDemoPasswordCancel").addEventListener("click",()=>closeDialog("newDemoPasswordDialog"));
+  $("saveNewDemoPassword").addEventListener("click",saveNewDemoPassword);
+  $("demoPasswordInput").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      event.preventDefault();
+      verifyDemoPassword();
+    }
+  });
+  $("recoveryAnswer").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      event.preventDefault();
+      verifyRecoveryAnswer();
+    }
+  });
+  $("confirmNewDemoPassword").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      event.preventDefault();
+      saveNewDemoPassword();
+    }
+  });
+  loadState();render();
+  setInterval(()=>{if(dateKey()!==state.date)loadState();render();},1000);
+})();
+</script>
+</body>
+</html>
