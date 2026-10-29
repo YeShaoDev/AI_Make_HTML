@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>做还是不做 · 幸运转盘</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --site-primary: #6D5CE8;
+  --site-on-primary: #FFFFFF;
+  --site-secondary: #F2B8A2;
+  --site-on-secondary: #39201A;
+  --site-background: #F7F5FF;
+  --site-on-background: #27233B;
+  --site-font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --site-background: #171525; --site-on-background: #F4F0FF; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+.app { min-height: 100vh; width: 100%; background-color: var(--site-background); color: var(--site-on-background); display: flex; align-items: center; justify-content: center; padding: calc(28px * var(--site-spacing-scale)); overflow: hidden; position: relative; }
+.glow { position: absolute; width: 360px; height: 360px; border-radius: 50%; filter: blur(2px); opacity: calc(.18 * var(--site-decoration-opacity)); pointer-events: none; }
+.glow.one { background: var(--site-primary); top: -170px; left: -120px; }
+.glow.two { background: var(--site-secondary); right: -160px; bottom: -170px; }
+.panel { position: relative; z-index: 1; width: min(100%, 560px); text-align: center; padding: 22px 12px 28px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid color-mix(in srgb, var(--site-primary) 28%, transparent); color: var(--site-primary); border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+h1 { font-family: var(--site-font-heading); font-size: calc(clamp(30px, 6vw, 43px) * var(--site-heading-scale)); line-height: 1.15; letter-spacing: -.045em; margin: 18px 0 10px; }
+.subtitle { margin: 0 auto 26px; color: color-mix(in srgb, var(--site-on-background) 68%, transparent); font-size: 15px; line-height: 1.7; }
+.wheel-wrap { width: min(78vw, 370px); aspect-ratio: 1; margin: 0 auto 25px; position: relative; filter: drop-shadow(0 18px 24px #241b4b24); }
+.wheel-wrap::before { content: ""; position: absolute; z-index: 0; inset: -9px; border-radius: 50%; background: conic-gradient(from 215deg, #806126, #FFF0B0 12%, #C79B3B 22%, #FFF8D6 31%, #8B692A 43%, #E8C45E 54%, #75531D 66%, #FFF0B0 78%, #B98A32 89%, #806126); box-shadow: inset 0 0 0 1px #fff4c8, 0 0 0 1px #806126, 0 4px 12px #392b6b2b; pointer-events: none; }
+.pointer { position: absolute; z-index: 4; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 32px solid #F6C453; border-bottom: 0; filter: drop-shadow(0 3px 2px #241b4b33); }
+.wheel { width: 100%; height: 100%; border-radius: 50%; border: 0; outline: 0; background: conic-gradient(from -90deg, #7565ED 0deg 180deg, #F5B59F 180deg 360deg); position: relative; z-index: 1; overflow: hidden; transition: transform 4.2s cubic-bezier(.12,.76,.12,1); }
+.label { position: absolute; top: 50%; left: 50%; width: 50%; height: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: clamp(25px, 6vw, 35px); color: #fff; text-shadow: 0 2px 4px #2d205a35; }
+.label.do { transform: translateY(-100%); padding-bottom: 17px; }
+.label.dont { transform: rotate(180deg) translateY(-100%); padding-bottom: 17px; color: #4B2C29; text-shadow: none; }
+.sector-word { position: absolute; z-index: 2; left: 50%; top: 50%; width: 42%; text-align: center; font-size: clamp(24px, 5.5vw, 34px); font-weight: 900; letter-spacing: .08em; pointer-events: none; }
+.sector-word.do-word { left: 50%; top: 27%; color: #FFFFFF; transform: translate(-50%, -50%); text-shadow: 0 2px 5px #2d205a55; }
+.sector-word.dont-word { left: 50%; top: 73%; color: #4B2C29; transform: translate(-50%, -50%); }
+.hub { position: absolute; z-index: 3; width: 64px; height: 64px; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%,-50%); background: #FFFDF9; border: 5px solid #E9E4FF; box-shadow: 0 4px 14px #241b4b24; display: grid; place-items: center; color: #6D5CE8; font-size: 23px; }
+button { border: 0; font: inherit; cursor: pointer; }
+.spin { min-width: 220px; padding: 16px 27px; background: var(--site-primary); color: var(--site-on-primary); font-size: 16px; font-weight: 800; border-radius: calc(18px * var(--site-radius-scale)); box-shadow: 0 8px 20px color-mix(in srgb, var(--site-primary) 28%, transparent); transition: transform .18s, opacity .18s, box-shadow .18s; }
+.spin:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 24px color-mix(in srgb, var(--site-primary) 32%, transparent); }
+.spin:active:not(:disabled) { transform: translateY(0); }
+.spin:disabled { opacity: .65; cursor: wait; }
+.result { min-height: 58px; margin: 18px auto 0; font-size: 18px; font-weight: 800; }
+.result strong { display: block; font-size: 29px; margin-top: 2px; color: var(--site-primary); }
+.hint { color: color-mix(in srgb, var(--site-on-background) 52%, transparent); font-size: 12px; margin-top: 8px; }
+.mode-switch { display: flex; gap: 7px; max-width: 370px; margin: 0 auto 21px; padding: 5px; border: 1px solid color-mix(in srgb, var(--site-primary) 20%, transparent); border-radius: 16px; background: color-mix(in srgb, var(--site-primary) 5%, var(--site-background)); }
+.mode-button { flex: 1; padding: 11px 12px; border-radius: 11px; background: transparent; color: var(--site-on-background); font-size: 14px; font-weight: 800; transition: background .2s, color .2s, box-shadow .2s; }
+.mode-button.active { background: var(--site-primary); color: #FFFFFF; box-shadow: 0 4px 12px color-mix(in srgb, var(--site-primary) 25%, transparent); }
+.mode-button:disabled { opacity: .6; cursor: wait; }
+@media (prefers-reduced-motion: reduce) { .wheel { transition-duration: .01ms; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="glow one"></div><div class="glow two"></div>
+  <section class="panel" aria-labelledby="title">
+    <div class="eyebrow"><span>✦</span> YOUR DECISION WHEEL</div>
+    <div class="mode-switch" role="group" aria-label="选择转盘模式">
+      <button class="mode-button active" id="doMode" type="button" aria-pressed="true">做还是不做</button>
+      <button class="mode-button" id="buyMode" type="button" aria-pressed="false">买还是不买</button>
+    </div>
+    <h1 id="title">做，还是不做？</h1>
+    <p class="subtitle">把选择交给转盘，让它替你揭晓答案。</p>
+    <div class="wheel-wrap" aria-label="二选一转盘">
+      <div class="pointer" aria-hidden="true"></div>
+      <div class="wheel" id="wheel">
+        <div class="sector-word do-word">做</div>
+        <div class="sector-word dont-word">不做</div>
+      </div>
+      <div class="hub" aria-hidden="true">✦</div>
+    </div>
+    <button class="spin" id="spinButton" type="button">↻　开始旋转</button>
+    <div class="result" id="result" aria-live="polite">准备好了吗？<strong>听天由命 ✨</strong></div>
+    <div class="hint">每次旋转只会得到「做」或「不做」</div>
+  </section>
+</main>
+<script>
+(() => {
+  const wheel = document.getElementById('wheel');
+  const button = document.getElementById('spinButton');
+  const result = document.getElementById('result');
+  const title = document.getElementById('title');
+  const subtitle = document.querySelector('.subtitle');
+  const hint = document.querySelector('.hint');
+  const doModeButton = document.getElementById('doMode');
+  const buyModeButton = document.getElementById('buyMode');
+  const doWord = wheel.querySelector('.do-word');
+  const dontWord = wheel.querySelector('.dont-word');
+  let rotation = 0;
+  let spinning = false;
+  let consecutiveNoCount = 0;
+
+  function setMode(nextMode) {
+    if (spinning) return;
+    const isBuy = nextMode === 'buy';
+    doModeButton.classList.toggle('active', !isBuy);
+    buyModeButton.classList.toggle('active', isBuy);
+    doModeButton.setAttribute('aria-pressed', String(!isBuy));
+    buyModeButton.setAttribute('aria-pressed', String(isBuy));
+    title.textContent = isBuy ? '买，还是不买？' : '做，还是不做？';
+    subtitle.textContent = isBuy ? '下单前转一下，让转盘帮你冷静思考。' : '把选择交给转盘，让它替你揭晓答案。';
+    doWord.textContent = isBuy ? '买' : '做';
+    dontWord.textContent = isBuy ? '不买' : '不做';
+    doWord.style.top = isBuy ? '22%' : '';
+    dontWord.style.top = isBuy ? '73%' : '';
+    doWord.style.color = isBuy ? '#4B2C29' : '#FFFFFF';
+    dontWord.style.color = isBuy ? '#FFFFFF' : '#4B2C29';
+    wheel.style.background = isBuy
+      ? 'conic-gradient(from -90deg, #7565ED 0deg 180deg, #F5B59F 180deg 360deg)'
+      : '';
+    hint.textContent = isBuy ? '' : '每次旋转只会得到「做」或「不做」';
+    result.innerHTML = '准备好了吗？<strong>听天由命 ✨</strong>';
+    button.disabled = false;
+    button.textContent = '↻　开始旋转';
+    consecutiveNoCount = 0;
+  }
+
+  doModeButton.addEventListener('click', () => setMode('do'));
+  buyModeButton.addEventListener('click', () => setMode('buy'));
+
+  button.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    button.disabled = true;
+    doModeButton.disabled = true;
+    buyModeButton.disabled = true;
+    button.textContent = '✦　旋转中…';
+    result.textContent = '命运正在转动…';
+    // Pick a target sector, then derive the displayed result from the actual final pointer angle.
+    const current = ((rotation % 360) + 360) % 360;
+    // The pointer is fixed at the top. With this conic gradient, purple (做)
+    // is under the pointer when the wheel rotation is near 0° or 360°.
+    // Hidden safety rule: after two consecutive "不做" results, force the next result to "做".
+    const isBuyMode = buyModeButton.classList.contains('active');
+    let targetOutcome;
+    let desired;
+    if (isBuyMode) {
+      targetOutcome = Math.random() < 0.2 ? '买' : '不买';
+      desired = targetOutcome === '买'
+        ? (Math.random() < 0.5 ? 8 + Math.random() * 25 : 327 + Math.random() * 25)
+        : (Math.random() < 0.5 ? 125 + Math.random() * 30 : 205 + Math.random() * 30);
+    } else {
+      const forceDo = consecutiveNoCount >= 2;
+      targetOutcome = forceDo ? '做' : (Math.random() < 0.5 ? '做' : '不做');
+      desired = targetOutcome === '做'
+        ? (Math.random() < 0.5 ? 25 + Math.random() * 50 : 295 + Math.random() * 50)
+        : (Math.random() < 0.5 ? 115 + Math.random() * 50 : 205 + Math.random() * 50);
+    }
+    let delta = (desired - current + 360) % 360;
+    rotation += 360 * (5 + Math.floor(Math.random() * 3)) + delta;
+    wheel.style.transform = `rotate(${rotation}deg)`;
+    window.setTimeout(() => {
+      const finalAngle = ((rotation % 360) + 360) % 360;
+      let outcome;
+      if (isBuyMode) {
+        const isBuySector = finalAngle < 90 || finalAngle >= 270;
+        outcome = isBuySector ? '买' : '不买';
+        consecutiveNoCount = 0;
+      } else {
+        const isPurple = finalAngle < 90 || finalAngle >= 270;
+        outcome = isPurple ? '做' : '不做';
+        consecutiveNoCount = outcome === '不做' ? consecutiveNoCount + 1 : 0;
+      }
+      result.innerHTML = '这次的结果是<strong>' + outcome + ' ' + (outcome === '做' || outcome === '买' ? '✓' : '✕') + '</strong>';
+      button.disabled = false;
+      button.textContent = '↻　再转一次';
+      doModeButton.disabled = false;
+      buyModeButton.disabled = false;
+      spinning = false;
+    }, 4300);
+  });
+})();
+</script>
+</body>
+</html>
